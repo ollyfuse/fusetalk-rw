@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: fusetalk_db
+      POSTGRES_USER: fusetalk
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build: ./Backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=fusetalk_db
+      - DB_USER=fusetalk
+      - DB_PASSWORD=password
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,localhost:8000
+      - SECRET_KEY=dev-secret-key-change-in-production
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./Backend:/app
+    command: sh -c "sleep 10 && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 fusetalkconfig.asgi:application"
+
+  # frontend:
+  #   build: ./Frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - REACT_APP_API_URL=http://localhost:8000
+  #     - REACT_APP_WS_URL=ws://localhost:8000
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./Frontend:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:

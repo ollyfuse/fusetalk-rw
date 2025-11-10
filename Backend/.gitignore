@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+static/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Migrations (optional - keep for now)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Testing
+.pytest_cache/
+.tox/

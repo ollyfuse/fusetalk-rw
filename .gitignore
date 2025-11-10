@@ -1,0 +1,24 @@
+# Environment variables
+.env*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Docker
+.dockerignore
+
+# Coverage reports
+coverage/
+.coverage
