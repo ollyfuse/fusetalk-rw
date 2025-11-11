@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWebRTC } from '../../hooks/useWebRTC';
+import { chatAPI } from '../../services/api';
+
 
 interface ChatInterfaceProps {
   sessionId: string;
@@ -18,11 +20,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const hasManuallyHiddenVideo = useRef(false);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [showFuseMoment, setShowFuseMoment] = useState(false);
+  const [fuseMomentData, setFuseMomentData] = useState<any>(null);
+
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatWs = useRef<WebSocket | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
 
   const {
     localStream,
@@ -74,24 +82,26 @@ useEffect(() => {
         console.error('❌ Remote video play failed:', e);
       });
     }
-  }, [remoteStream]);
+  }, [remoteStream, showVideo]);
 
-  useEffect(() => {
-  if (remoteStream && !showVideo) {
+ useEffect(() => {
+  if (remoteStream && !showVideo && !hasManuallyHiddenVideo.current) {
     console.log('📺 AUTO-SHOWING VIDEO (remote stream received)');
     setShowVideo(true);
   }
 }, [remoteStream]);
 
 useEffect(() => {
-  // Auto-show video for random video chat
   const timer = setTimeout(() => {
-    console.log('📹 AUTO-SHOWING VIDEO (random video chat)');
-    setShowVideo(true);
+    if (!hasManuallyHiddenVideo.current) {
+      console.log('📹 AUTO-SHOWING VIDEO (random video chat)');
+      setShowVideo(true);
+    }
   }, 2000);
   
   return () => clearTimeout(timer);
 }, []);
+
 
   // Chat WebSocket (simplified)
   useEffect(() => {
@@ -136,11 +146,53 @@ useEffect(() => {
     setNewMessage('');
   };
 
-  const handleStartVideo = () => {
-    console.log('🚀 USER CLICKED START VIDEO');
-    setShowVideo(true);
-    startCall();
-  };
+ const handleStartVideo = () => {
+  console.log('🚀 USER CLICKED START VIDEO');
+  hasManuallyHiddenVideo.current = false; // Reset the manual hide flag
+  setShowVideo(true);
+  startCall();
+};
+const handleLikeSession = async () => {
+  if (hasLiked) return;
+  
+  try {
+    console.log('❤️ Liking session:', sessionId);
+    const response = await chatAPI.likeSession(sessionId);
+    
+    setHasLiked(true);
+    
+    if (response.fuse_moment) {
+      console.log('🎉 FUSE MOMENT CREATED!');
+      setFuseMomentData(response);
+      setShowFuseMoment(true);
+    } else {
+      console.log('💝 Session liked, waiting for mutual like');
+    }
+  } catch (error) {
+    console.error('❌ Error liking session:', error);
+  }
+};
+const [showContactExchange, setShowContactExchange] = useState(false);
+const [contactInfo, setContactInfo] = useState({
+  whatsapp: '',
+  instagram: '',
+  telegram: '',
+  note: ''
+});
+
+const handleShareContact = async () => {
+  try {
+    if (fuseMomentData?.fuse_moment_id) {
+      await chatAPI.shareContact(fuseMomentData.fuse_moment_id, contactInfo);
+      console.log('📞 Contact shared successfully!');
+    }
+    setShowContactExchange(false);
+    setShowFuseMoment(false);
+  } catch (error) {
+    console.error('❌ Error sharing contact:', error);
+  }
+};
+
 
   return (
     <div className="h-screen bg-gray-50 flex">
@@ -254,6 +306,7 @@ useEffect(() => {
     <button
   onClick={() => {
     console.log('💬 Chat button clicked - hiding video');
+    hasManuallyHiddenVideo.current = true;
     setShowVideo(false);
   }}
   className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all duration-200"
@@ -262,6 +315,23 @@ useEffect(() => {
   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
     <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
   </svg>
+</button>
+
+{/* Like Button - NEW */}
+<button
+  onClick={handleLikeSession}
+  disabled={hasLiked}
+  className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+    hasLiked 
+      ? 'bg-pink-600 text-white cursor-not-allowed' 
+      : 'bg-pink-500 hover:bg-pink-600 text-white'
+  }`}
+  title={hasLiked ? 'Already liked' : 'Like this conversation'}
+>
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+  </svg>
+  {hasLiked && <span className="absolute -top-1 -right-1 text-xs">✓</span>}
 </button>
 
     {/* End Call */}
@@ -331,6 +401,98 @@ useEffect(() => {
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Fuse Moment Celebration Modal */}
+{showFuseMoment && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 max-w-lg mx-4">
+      {!showContactExchange ? (
+        // Initial celebration screen
+        <div className="text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-2xl font-bold text-pink-600 mb-2">Fuse Moment!</h2>
+          <p className="text-gray-600 mb-6">
+            You both liked this conversation! Want to stay connected with {matchedUser}?
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => setShowContactExchange(true)}
+              className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            >
+              📱 Share Contact
+            </button>
+            <button
+              onClick={() => setShowFuseMoment(false)}
+              className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Contact exchange form
+        <div>
+          <h3 className="text-xl font-bold mb-4">Share Your Contact Info</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">WhatsApp</label>
+              <input
+                type="text"
+                placeholder="+250 xxx xxx xxx"
+                value={contactInfo.whatsapp}
+                onChange={(e) => setContactInfo({...contactInfo, whatsapp: e.target.value})}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Instagram</label>
+              <input
+                type="text"
+                placeholder="@username"
+                value={contactInfo.instagram}
+                onChange={(e) => setContactInfo({...contactInfo, instagram: e.target.value})}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Telegram</label>
+              <input
+                type="text"
+                placeholder="@username"
+                value={contactInfo.telegram}
+                onChange={(e) => setContactInfo({...contactInfo, telegram: e.target.value})}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Personal Note</label>
+              <textarea
+                placeholder="Great chatting with you!"
+                value={contactInfo.note}
+                onChange={(e) => setContactInfo({...contactInfo, note: e.target.value})}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500 h-20"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={handleShareContact}
+              className="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            >
+              Share & Connect ✨
+            </button>
+            <button
+              onClick={() => setShowContactExchange(false)}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
         <div className="bg-white border-t p-4">
           <form onSubmit={handleSendMessage} className="flex gap-2">

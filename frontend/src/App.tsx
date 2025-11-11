@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import MatchingInterface from './components/matching/MatchingInterface';
 import ChatInterface from './components/chat/ChatInterface';
+import FuseMomentsGallery from './components/chat/FuseMomentsGallery';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -21,25 +23,40 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <LandingPage />;
-  }
-
-  if (currentSession) {
     return (
-      <ChatInterface
-        sessionId={currentSession.sessionId}
-        matchedUser={currentSession.matchedUser}
-        onEndChat={() => setCurrentSession(null)}
-      />
+      <Router>
+        <Routes>
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      </Router>
     );
   }
 
   return (
-    <MatchingInterface 
-      onMatchFound={(sessionId: string, matchedUser: string) => {
-        setCurrentSession({ sessionId, matchedUser });
-      }}
-    />
+    <Router>
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            currentSession ? (
+              <ChatInterface
+                sessionId={currentSession.sessionId}
+                matchedUser={currentSession.matchedUser}
+                onEndChat={() => setCurrentSession(null)}
+              />
+            ) : (
+              <MatchingInterface 
+                onMatchFound={(sessionId: string, matchedUser: string) => {
+                  setCurrentSession({ sessionId, matchedUser });
+                }}
+              />
+            )
+          } 
+        />
+        <Route path="/fuse-moments" element={<FuseMomentsGallery />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 };
 

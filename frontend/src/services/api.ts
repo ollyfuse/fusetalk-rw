@@ -54,4 +54,21 @@ export const matchingAPI = {
   },
 };
 
+// Chat API
+export const chatAPI = {
+  likeSession: async (sessionId: string) => {
+    const response = await api.post(`/api/chat/session/${sessionId}/like/`);
+    return response.data;
+  },
+  shareContact: async (fuseMomentId: string, contactInfo: any) => {
+  const response = await api.post(`/api/chat/fuse-moment/${fuseMomentId}/share-contact/`, contactInfo);
+  return response.data;
+  },
+  getFuseMoments: async () => {
+  const response = await api.get('/api/chat/fuse-moments/');
+  return response.data;
+  },
+};
+
+
 export default api;

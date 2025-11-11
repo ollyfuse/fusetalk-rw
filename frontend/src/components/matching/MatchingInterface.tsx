@@ -105,22 +105,30 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({ onMatchFound }) =
   return (
     <div className="min-h-screen bg-soft-grey">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-montserrat font-bold text-kigali-blue">
-              FuseTalk RW
-            </h1>
-            <p className="text-sm text-gray-600">Welcome, {user?.nickname}! 👋</p>
-          </div>
-          <button
-            onClick={logout}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            Leave
-          </button>
-        </div>
-      </div>
+     <div className="bg-white shadow-sm border-b">
+  <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div>
+      <h1 className="text-2xl font-montserrat font-bold text-kigali-blue">
+        FuseTalk RW
+      </h1>
+      <p className="text-sm text-gray-600">Welcome, {user?.nickname}! 👋</p>
+    </div>
+    <div className="flex items-center gap-4">
+      <button
+        onClick={() => window.location.href = '/fuse-moments'}
+        className="flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-sm"
+      >
+        ✨ My Fuse Moments
+      </button>
+      <button
+        onClick={logout}
+        className="text-gray-500 hover:text-gray-700 text-sm"
+      >
+        Leave
+      </button>
+    </div>
+  </div>
+</div>
 
       {/* WebSocket Status */}
       <div className="max-w-2xl mx-auto px-6">

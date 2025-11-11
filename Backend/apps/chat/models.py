@@ -57,3 +57,32 @@ class FuseMoment(models.Model):
     
     class Meta:
         db_table = 'fuse_moments'
+
+class SessionLike(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'session_likes'
+        unique_together = [['session', 'user']]
+
+
+class ContactExchange(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fuse_moment = models.ForeignKey(FuseMoment, on_delete=models.CASCADE, related_name='contact_exchanges')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_contacts')
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_contacts')
+    
+    whatsapp = models.CharField(max_length=20, blank=True)
+    instagram = models.CharField(max_length=50, blank=True)
+    telegram = models.CharField(max_length=50, blank=True)
+    note = models.TextField(max_length=200, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'contact_exchanges'
+        unique_together = [['fuse_moment', 'sender']]
+
