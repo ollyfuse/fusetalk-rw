@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { AuthResponse, MatchRequest, MatchResponse } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://172.20.10.5:8000';
+
 
 // Create axios instance with default config
 const api = axios.create({
@@ -68,6 +70,10 @@ export const chatAPI = {
   const response = await api.get('/api/chat/fuse-moments/');
   return response.data;
   },
+  // endSession: async (sessionId: string) => {
+  // const response = await api.post(`/chat/sessions/${sessionId}/end/`);
+  // return response.data;
+  // },
 };
 
 

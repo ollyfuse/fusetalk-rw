@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 
+const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://172.20.10.5:8000';
+
 export const useWebRTC = (sessionId: string, token: string, userId: string) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -16,7 +18,7 @@ export const useWebRTC = (sessionId: string, token: string, userId: string) => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    isPolite.current = userId.localeCompare(sessionId) < 0;
+    isPolite.current = userId < sessionId;
     
     console.log('🚀 INITIALIZING WebRTC');
     console.log('📋 SessionID:', sessionId);
@@ -91,7 +93,7 @@ export const useWebRTC = (sessionId: string, token: string, userId: string) => {
 
   const connectSignaling = () => {
     return new Promise<void>((resolve, reject) => {
-      const wsUrl = `ws://localhost:8000/ws/signaling/${sessionId}/?token=${token}`;
+      const wsUrl = `${WS_BASE_URL}/ws/signaling/${sessionId}/?token=${token}`;
       console.log('🔗 Connecting to:', wsUrl);
       
       signalingWs.current = new WebSocket(wsUrl);

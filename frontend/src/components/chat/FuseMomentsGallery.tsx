@@ -47,7 +47,7 @@ const FuseMomentsGallery: React.FC = () => {
 return (
   <div className="min-h-screen bg-gray-50">
     {/* Navigation Header */}
-    <div className="bg-white shadow-sm border-b">
+    {/* <div className="bg-white shadow-sm border-b">
       <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Your Fuse Moments ✨</h1>
@@ -60,7 +60,7 @@ return (
           ← Back to Chat
         </button>
       </div>
-    </div>
+    </div> */}
 
     <div className="p-6">
       <div className="max-w-4xl mx-auto">

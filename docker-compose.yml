@@ -31,7 +31,8 @@ services:
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
       - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,localhost:8000
+      # - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,localhost:8000
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,172.20.10.5,*
       - SECRET_KEY=dev-secret-key-change-in-production
     depends_on:
       - postgres

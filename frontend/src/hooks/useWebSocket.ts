@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { WebSocketMessage } from '../types';
 
-const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000';
+// const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000';
+const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://172.20.10.5:8000';
 
 export const useWebSocket = (onMessage?: (message: WebSocketMessage) => void) => {
   const { token, user } = useAuth();
