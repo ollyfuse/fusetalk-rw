@@ -18,7 +18,9 @@ export const useWebRTC = (sessionId: string, token: string, userId: string) => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    isPolite.current = userId < sessionId;
+    isPolite.current = parseInt(userId[0], 16) % 2 === 0;
+    // isPolite.current = parseInt(userId.slice(-1), 16) % 2 === 0;
+
     
     console.log('🚀 INITIALIZING WebRTC');
     console.log('📋 SessionID:', sessionId);

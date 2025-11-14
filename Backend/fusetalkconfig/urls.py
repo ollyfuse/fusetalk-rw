@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,4 +25,4 @@ urlpatterns = [
     path('api/chat/', include('apps.chat.urls')),
     path('api/match/', include('apps.matching.urls')),
     path('api/moderation/', include('apps.moderation.urls')),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
